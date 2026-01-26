@@ -6,6 +6,8 @@
     border-radius: 4px;
     padding: 12px;
     height: 600px;
+    width: 100%;
+    max-width: 100%;
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
     position: relative;
     z-index: 10;
@@ -14,13 +16,16 @@
     flex-direction: column;
 }
 
-/* xterm.js base styling */
+/* xterm.js base styling - CRITICAL for monospace alignment */
 .xterm {
-    font-family: 'Courier New', 'Courier', monospace !important;
+    font-family: 'Courier New', Courier, monospace !important;
     font-size: 14px !important;
-    line-height: 1.5 !important;
+    line-height: 1.0 !important;                     /* 1.0 = exact character height */
+    letter-spacing: 0 !important;                    /* NO letter spacing for monospace */
     color: #E6EEF3 !important;
-    letter-spacing: 0.02em;
+    background-color: transparent !important;
+    position: relative;
+    flex-grow: 1;
 }
 
 .xterm-screen {
@@ -29,12 +34,22 @@
 
 .xterm-viewport {
     background-color: transparent !important;
-    overflow-y: hidden !important;
+    overflow-y: hidden !important;                   /* Disable scrolling in htop mode */
+    overflow-x: hidden !important;                   /* Prevent horizontal scroll */
     scrollbar-width: none !important;
 }
 
 .xterm-viewport::-webkit-scrollbar {
     display: none !important;
+}
+
+.xterm-rows {
+    position: relative;
+}
+
+.xterm-row {
+    white-space: pre;                                /* Preserve exact spacing */
+    overflow: hidden;                                /* No wrapping within rows */
 }
 
 .xterm-cursor-block {

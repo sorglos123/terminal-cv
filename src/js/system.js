@@ -110,28 +110,40 @@ ${this.arch} ${this.platform}`;
 class ProcessSimulator {
     constructor() {
         this.processes = this.generateProcesses();
+        this.timestamp = Date.now();
+        this.isRunning = false;
+        this.updateInterval = null;
     }
     
     generateProcesses() {
+        // More realistic process list
         const processNames = [
-            'init', 'kthreadd', 'rcu_gp', 'rcu_par_gp', 'kworker/0:0',
-            'systemd', 'journald', 'sshd', 'bash', 'terminal.js',
-            'node', 'npm', 'git', 'chrome', 'firefox'
+            { name: 'systemd', user: 'root', baseCpu: 0.5, baseMem: 2.1 },
+            { name: 'systemd-journal', user: 'root', baseCpu: 0.2, baseMem: 1.5 },
+            { name: 'sshd', user: 'root', baseCpu: 0.1, baseMem: 0.8 },
+            { name: 'bash', user: 'srgls', baseCpu: 0.3, baseMem: 1.2 },
+            { name: 'node', user: 'srgls', baseCpu: 2.5, baseMem: 8.5 },
+            { name: 'npm', user: 'srgls', baseCpu: 0.8, baseMem: 3.2 },
+            { name: 'git', user: 'srgls', baseCpu: 1.2, baseMem: 2.1 },
+            { name: 'python3', user: 'srgls', baseCpu: 5.1, baseMem: 12.3 },
+            { name: 'firefox', user: 'srgls', baseCpu: 8.7, baseMem: 45.6 },
+            { name: 'chrome', user: 'srgls', baseCpu: 12.3, baseMem: 67.2 }
         ];
         
-        return processNames.map((name, i) => ({
-            pid: 100 + i,
-            name: name,
-            cpu: Math.random() * 20,
-            mem: Math.random() * 15
+        return processNames.map((p, i) => ({
+            pid: 1000 + (i * 50),
+            name: p.name,
+            user: p.user,
+            cpu: p.baseCpu + (Math.random() - 0.5) * 2,
+            mem: p.baseMem + (Math.random() - 0.5) * 1.5
         }));
     }
     
     updateProcesses() {
-        // Simulate CPU/memory changes
+        // Simulate CPU/memory changes with some randomness
         this.processes.forEach(p => {
-            p.cpu = Math.max(0, p.cpu + (Math.random() - 0.5) * 5);
-            p.mem = Math.max(0, p.mem + (Math.random() - 0.5) * 3);
+            p.cpu = Math.max(0, Math.min(100, p.cpu + (Math.random() - 0.5) * 3));
+            p.mem = Math.max(0, Math.min(100, p.mem + (Math.random() - 0.5) * 1));
         });
     }
     
@@ -142,24 +154,80 @@ class ProcessSimulator {
     }
     
     getHtopOutput() {
+        this.updateProcesses();
+        
         const totalCpu = this.processes.reduce((sum, p) => sum + p.cpu, 0);
         const totalMem = this.processes.reduce((sum, p) => sum + p.mem, 0);
+        const avgLoad = (totalCpu / 10).toFixed(2);
         
-        let output = `Tasks: ${this.processes.length} total   Load average: ${(totalCpu / 10).toFixed(2)}, ${(totalCpu / 15).toFixed(2)}, ${(totalCpu / 20).toFixed(2)}
-CPU  ${this.formatBar(totalCpu, 100)} ${totalCpu.toFixed(1)}%
-Mem  ${this.formatBar(totalMem, 100)} ${totalMem.toFixed(1)}%
-
-  PID USER      CPU% MEM%  COMMAND
+        // ANSI color codes
+        const ORANGE = '\x1b[38;2;233;84;32m';    // #E95420
+        const TEAL = '\x1b[38;2;23;184;144m';     // #17B890
+        const RED = '\x1b[38;2;255;107;97m';      // #FF6B61
+        const GRAY = '\x1b[38;2;154;166;178m';    // #9AA6B2
+        const RESET = '\x1b[0m';
+        const BOLD = '\x1b[1m';
+        
+        const cpuPercent = Math.min(100, totalCpu);
+        const memPercent = Math.min(100, totalMem);
+        const cpuBar = this.formatBar(cpuPercent, 100, 20);
+        const memBar = this.formatBar(memPercent, 100, 20);
+        
+        // Color code based on usage
+        const cpuColor = cpuPercent > 70 ? RED : (cpuPercent > 40 ? ORANGE : TEAL);
+        const memColor = memPercent > 70 ? RED : (memPercent > 40 ? ORANGE : TEAL);
+        // Build header with exact spacing to match data rows
+        const headerLine = `   PID USER       CPU%  MEM% COMMAND`;
+        
+        let output = `${BOLD}htop 3.2.2${RESET} - ${new Date().toLocaleTimeString()}
+${GRAY}─────────────────────────────────────────────────────────────${RESET}
+${GRAY}Tasks${RESET}: ${this.processes.length} total  ${GRAY}Load average${RESET}: ${avgLoad} ${(totalCpu / 15).toFixed(2)} ${(totalCpu / 20).toFixed(2)}
+${cpuColor}CPU  ${cpuBar}${RESET} ${cpuPercent.toFixed(1)}%
+${memColor}Mem  ${memBar}${RESET} ${memPercent.toFixed(1)}%
+${GRAY}─────────────────────────────────────────────────────────────${RESET}
+${BOLD}${ORANGE}${headerLine}${RESET}
+${GRAY}─────────────────────────────────────────────────────────────${RESET}
 `;
         
         this.processes
             .sort((a, b) => b.cpu - a.cpu)
-            .slice(0, 10)
             .forEach(p => {
-                output += `${p.pid.toString().padEnd(5)} srgls  ${p.cpu.toFixed(2).padEnd(5)} ${p.mem.toFixed(2).padEnd(6)} ${p.name}\n`;
+                const pid = String(p.pid).padStart(4);
+                const user = p.user.padEnd(8);
+                const cpuVal = p.cpu.toFixed(1).padStart(4);
+                const memVal = p.mem.toFixed(1).padStart(4);
+                const cpuCol = p.cpu > 5 ? RED : (p.cpu > 2 ? ORANGE : '');
+                const memCol = p.mem > 20 ? RED : (p.mem > 10 ? ORANGE : '');
+                
+                output += `${pid} ${user} ${cpuCol}${cpuVal}${RESET} ${memCol}${memVal}${RESET} ${p.name}\n`;
             });
         
+        output += `${GRAY}─────────────────────────────────────────────────────────────${RESET}
+${GRAY}Press 'q' to quit${RESET}`;
+        
         return output;
+    }
+    
+    startLive(updateCallback) {
+        this.isRunning = true;
+        // Clear screen initially
+        updateCallback(this.getHtopOutput());
+        
+        // Update every 500ms
+        this.updateInterval = setInterval(() => {
+            if (!this.isRunning) {
+                clearInterval(this.updateInterval);
+                return;
+            }
+            updateCallback(this.getHtopOutput());
+        }, 500);
+    }
+    
+    stop() {
+        this.isRunning = false;
+        if (this.updateInterval) {
+            clearInterval(this.updateInterval);
+        }
     }
 }
 

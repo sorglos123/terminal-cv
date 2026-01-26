@@ -1,53 +1,98 @@
 // ============================================================================
-// xterm.js Terminal Implementation
+// xterm.js Terminal Implementation with FitAddon
 // ============================================================================
 
-// Initialize xterm.js
+// Initialize xterm.js with optimized settings for monospace alignment
 const terminalContainer = document.getElementById('terminal');
 const term = new Terminal({
-    cols: 120,
-    rows: 30,
-    theme: {
-        background: '#0B0F14',        // primary background - near-black
-        foreground: '#E6EEF3',        // primary text - high contrast off-white
-        cursor: '#E95420',            // accent 1 - Ubuntu orange for visibility
-        cursorAccent: '#0B0F14',      // background behind cursor
-        selection: 'rgba(31, 111, 235, 0.12)', // focus color - subtle blue
-        // ANSI color palette
-        black: '#2C3E50',             // dark gray
-        red: '#FF6B61',               // error - accessible red
-        green: '#17B890',             // success - teal accent
-        yellow: '#D4B03A',            // warning - accessible yellow
-        blue: '#1F6FEB',              // info - focus blue
-        magenta: '#B88EDF',           // purple - complementary
-        cyan: '#00D9FF',              // bright cyan
-        white: '#E6EEF3',             // primary text
-        brightBlack: '#546E7A',       // lighter dark gray
-        brightRed: '#FF8076',         // lighter red
-        brightGreen: '#26D07C',       // lighter green
-        brightYellow: '#E5C158',      // lighter yellow
-        brightBlue: '#3B82F6',        // lighter blue
-        brightMagenta: '#D8B9F1',     // lighter purple
-        brightCyan: '#1FFBF0',        // lighter cyan
-        brightWhite: '#FFFFFF'        // pure white
-    },
-    scrollback: 1000,
+    cols: 120,                        // Initial cols, will be set by fitAddon
+    rows: 30,                         // Initial rows, will be set by fitAddon
+    allowProposedApi: true,
+    convertEol: true,
+    cursorBlink: true,
+    cursorStyle: 'block',
+    fontFamily: '"Courier New", Courier, monospace',
+    fontSize: 14,
+    lineHeight: 1.0,                  // Critical: exact character cell height
+    letterSpacing: 0,                 // Critical: no spacing for columns
+    scrollback: 100,
+    scrollOnInput: false,
+    scrollOnUserInput: false,
     screenKeys: true,
     mouseWheelScroll: true,
-    scrollOnUserInput: true,
-    disableStdin: false
+    theme: {
+        background: '#0B0F14',
+        foreground: '#E6EEF3',
+        cursor: '#E95420',
+        cursorAccent: '#0B0F14',
+        selection: 'rgba(31, 111, 235, 0.12)',
+        black: '#2C3E50',
+        red: '#FF6B61',
+        green: '#17B890',
+        yellow: '#D4B03A',
+        blue: '#1F6FEB',
+        magenta: '#B88EDF',
+        cyan: '#00D9FF',
+        white: '#E6EEF3',
+        brightBlack: '#546E7A',
+        brightRed: '#FF8076',
+        brightGreen: '#26D07C',
+        brightYellow: '#E5C158',
+        brightBlue: '#3B82F6',
+        brightMagenta: '#D8B9F1',
+        brightCyan: '#1FFBF0',
+        brightWhite: '#FFFFFF'
+    }
 });
 
 term.open(terminalContainer);
 
-// ============================================================================
-// Terminal State
-// ============================================================================
+// Load FitAddon when available - this fires AFTER both scripts load
+function initializeFitAddon() {
+    // Check if FitAddon is available globally
+    if (typeof FitAddon === 'undefined') {
+        console.warn('FitAddon not yet loaded, will retry...');
+        setTimeout(initializeFitAddon, 100);
+        return;
+    }
+    
+    // Attach FitAddon
+    const fitAddon = new FitAddon();
+    term.loadAddon(fitAddon);
+    
+    // Call fit() to calculate cols/rows based on container size
+    fitAddon.fit();
+    
+    // Handle resize events
+    window.addEventListener('resize', () => {
+        try {
+            fitAddon.fit();
+        } catch (e) {
+            console.warn('Fit failed on resize:', e);
+        }
+    });
+    
+    // Handle container resize
+    const resizeObserver = new ResizeObserver(() => {
+        try {
+            fitAddon.fit();
+        } catch (e) {
+            console.warn('Fit failed on container resize:', e);
+        }
+    });
+    resizeObserver.observe(terminalContainer);
+}
 
+// Start initialization after a brief delay to ensure scripts are loaded
+setTimeout(initializeFitAddon, 200);
+
+// ============================================================================
+// Terminal state
 let currentPath = '/';
 let commandHistory = [];
 let historyIndex = -1;
 let inputBuffer = '';
+let htopMode = false;  // Track if we're in htop/btop mode
 
 // ============================================================================
 // Utility Functions
@@ -100,6 +145,15 @@ const commandRegistry = {
 // ============================================================================
 
 term.onData((data) => {
+    // Handle q key to exit htop/btop mode
+    if (htopMode && (data === 'q' || data === 'Q')) {
+        htopMode = false;
+        processSimulator.stop();
+        term.write('\r\n');
+        writePrompt();
+        return;
+    }
+    
     // Handle arrow keys and other special sequences
     if (data.startsWith('\x1b')) {
         // Handle arrow keys
@@ -163,6 +217,18 @@ term.onData((data) => {
         
         if (cmd) {
             const handler = commandRegistry[cmd.toLowerCase()]?.handler;
+            
+            // Special handling for htop/btop - enter live mode
+            if ((cmd.toLowerCase() === 'htop' || cmd.toLowerCase() === 'btop') && handler) {
+                htopMode = true;
+                processSimulator.startLive((output) => {
+                    // Clear and redraw (simulate terminal clearing)
+                    term.write('\x1b[2J\x1b[0;0H');  // Clear screen and move cursor to top
+                    term.write(output);
+                });
+                return;
+            }
+            
             const output = handler ? handler(args) : `${cmd}: command not found`;
             
             if (output) {

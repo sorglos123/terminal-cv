@@ -3,6 +3,15 @@
 // ============================================================================
 
 const cvContent = {
+    experienceSummary: `Enterprise Systems Engineer – Customer Success at Veeam Software Group (since 11/2024)
+
+Enterprise infrastructure specialist with 10+ years.
+Designing and implementing backup, storage, and cloud solutions. 
+Led teams in large-scale private cloud and backup environments.
+Driving customer success, retention and growth. 
+Virtualization, security hardening, infrastructure automation.
+Solutions architecture across enterprise platforms.`,
+
     experience: `11/2024 – Present
 Enterprise Systems Engineer – Customer Success
 Veeam Software Group, München
@@ -107,12 +116,7 @@ const fileSystem = {
     },
     '/about': {
         type: 'directory',
-        entries: ['whoami', 'bio']
-    },
-    '/about/whoami': {
-        type: 'file',
-        virtual: true,
-        content: cvContent.about.split('\n')[0]
+        entries: ['bio']
     },
     '/about/bio': {
         type: 'file',
@@ -126,7 +130,7 @@ const fileSystem = {
     '/experience/summary': {
         type: 'file',
         virtual: true,
-        content: cvContent.experience.split('\n')[0]
+        content: cvContent.experienceSummary
     },
     '/experience/highlights': {
         type: 'file',

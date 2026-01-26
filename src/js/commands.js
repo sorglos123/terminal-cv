@@ -57,7 +57,7 @@ function handleCat(args) {
 }
 
 function handleWhoami() {
-    return fileSystem['/about/whoami'].content;
+    return cvContent.about.split('\n')[0];
 }
 
 function handleTree(args) {

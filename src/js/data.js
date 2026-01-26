@@ -116,7 +116,20 @@ operational support.`,
 const fileSystem = {
     '/': {
         type: 'directory',
-        entries: ['about', 'education', 'experience', 'skills', 'contact']
+        entries: ['about', 'assets', 'education', 'experience', 'skills', 'contact']
+    },
+    '/assets': {
+        type: 'directory',
+        entries: ['cv.pdf']
+    },
+    '/assets/cv.pdf': {
+        type: 'file',
+        url: '/assets/cv_SRichter2026.pdf',
+        content: 'CV - Sascha Richter (PDF) [use "open /assets/cv.pdf" to view]'
+    },
+    '/cv.pdf': {
+        type: 'symlink',
+        target: '/assets/cv.pdf'
     },
     '/about': {
         type: 'directory',

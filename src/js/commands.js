@@ -90,3 +90,61 @@ function handleClear() {
 function handleExit() {
     return 'Goodbye!';
 }
+
+function handleOpen(args) {
+    if (!args.length) return 'open: missing operand';
+    
+    const path = resolvePath(args[0]);
+    let entry = fileSystem[path];
+    
+    // Follow symlinks
+    if (entry && entry.type === 'symlink') {
+        entry = fileSystem[entry.target];
+    }
+    
+    if (!entry) return `open: ${args[0]}: No such file or directory`;
+    if (entry.type === 'directory') return `open: ${args[0]}: Is a directory`;
+    if (!entry.url) return `open: ${args[0]}: No URL associated with this file`;
+    
+    window.open(entry.url, '_blank');
+    return '';
+}
+
+function handleXdgOpen(args) {
+    // xdg-open is an alias to open
+    return handleOpen(args);
+}
+
+function handleHistory() {
+    if (commandHistory.length === 0) return 'No command history';
+    return commandHistory.map((cmd, i) => `${i + 1}  ${cmd}`).join('\n');
+}
+
+function handleHostnamectl() {
+    return `Static hostname: ${systemInfo.hostname}
+Icon name: computer-laptop
+Chassis: laptop
+Machine ID: cv-terminal-js
+Boot ID: runtime-${Math.random().toString(36).substr(2, 9)}
+Virtualization: javascript
+Operating System: CV Terminal OS
+Kernel: ${systemInfo.kernel}
+Architecture: ${systemInfo.arch}`;
+}
+
+function handleUname() {
+    return systemInfo.getUname();
+}
+
+function handleNeofetch() {
+    return systemInfo.getSystemInfo();
+}
+
+function handleHtop() {
+    return processSimulator.getHtopOutput();
+}
+
+function handleBtop() {
+    // btop is an alias to htop
+    return handleHtop();
+}

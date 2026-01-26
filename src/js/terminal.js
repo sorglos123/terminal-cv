@@ -5,12 +5,25 @@
 const terminalInput = document.getElementById('terminal-input');
 const outputContainer = document.getElementById('output-container');
 const terminal = document.getElementById('terminal');
+const initialPrompt = document.getElementById('initial-prompt');
 
 // ============================================================================
-// Terminal State
+// Terminal State & Utilities
 // ============================================================================
 
 let currentPath = '/';
+let commandHistory = [];
+let historyIndex = -1;
+
+function getPromptString() {
+    const displayPath = currentPath === '/' ? '/' : currentPath;
+    return `${systemInfo.username}@${systemInfo.hostname}:~${displayPath}$`;
+}
+
+function updatePromptDisplay() {
+    initialPrompt.textContent = getPromptString();
+}
+
 const commandRegistry = {
     'help': { desc: 'Show available commands', handler: handleHelp },
     'ls': { desc: 'List directory contents', handler: handleLs },
@@ -21,6 +34,14 @@ const commandRegistry = {
     'tree': { desc: 'Show file system tree', handler: handleTree },
     'grep': { desc: 'Search file contents', handler: handleGrep },
     'whoami': { desc: 'Display brief bio', handler: handleWhoami },
+    'open': { desc: 'Open file (PDF, etc) in browser', handler: handleOpen },
+    'xdg-open': { desc: 'Open file (alias to open)', handler: handleXdgOpen },
+    'history': { desc: 'Show command history', handler: handleHistory },
+    'hostnamectl': { desc: 'Show system hostname info', handler: handleHostnamectl },
+    'uname': { desc: 'Show system information', handler: handleUname },
+    'neofetch': { desc: 'Show system info with ASCII art', handler: handleNeofetch },
+    'htop': { desc: 'Simulated process monitor', handler: handleHtop },
+    'btop': { desc: 'Simulated process monitor (alias to htop)', handler: handleBtop },
     'clear': { desc: 'Clear terminal', handler: handleClear },
     'exit': { desc: 'Exit terminal', handler: handleExit }
 };
@@ -35,10 +56,17 @@ terminalInput.addEventListener('keypress', (e) => {
         const input = terminalInput.value.trim();
         terminalInput.value = '';
         
-        // Display command
+        // Add to history
+        if (input.length > 0) {
+            commandHistory.push(input);
+        }
+        historyIndex = -1;
+        
+        // Display command with full path prompt
+        const prompt = getPromptString();
         const commandLine = document.createElement('div');
         commandLine.className = 'terminal-line';
-        commandLine.innerHTML = `<span class="prompt">$</span> <span class="command">${escapeHtml(input)}</span>`;
+        commandLine.innerHTML = `<span class="prompt">${escapeHtml(prompt)}</span> <span class="command">${escapeHtml(input)}</span>`;
         outputContainer.appendChild(commandLine);
         
         // Parse and execute
@@ -53,11 +81,36 @@ terminalInput.addEventListener('keypress', (e) => {
             outputContainer.appendChild(outputDiv);
         }
         
+        // Update prompt display for next input
+        updatePromptDisplay();
         terminal.scrollTop = terminal.scrollHeight;
     }
 });
 
 terminalInput.addEventListener('keydown', (e) => {
+    // Arrow key history navigation
+    if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        if (historyIndex < commandHistory.length - 1) {
+            historyIndex++;
+            terminalInput.value = commandHistory[commandHistory.length - 1 - historyIndex];
+        }
+        return;
+    }
+    
+    if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        if (historyIndex > 0) {
+            historyIndex--;
+            terminalInput.value = commandHistory[commandHistory.length - 1 - historyIndex];
+        } else if (historyIndex === 0) {
+            historyIndex = -1;
+            terminalInput.value = '';
+        }
+        return;
+    }
+    
+    // Tab autocomplete
     if (e.key === 'Tab') {
         e.preventDefault();
         
@@ -74,8 +127,8 @@ terminalInput.addEventListener('keydown', (e) => {
                 .filter(c => c.startsWith(currentPart))
                 .map(c => c);
         }
-        // Autocomplete paths for cat, less, cd, ls, grep
-        else if (['cat', 'less', 'cd', 'ls', 'grep'].includes(cmd)) {
+        // Autocomplete paths for cat, less, cd, ls, grep, open, xdg-open
+        else if (['cat', 'less', 'cd', 'ls', 'grep', 'open', 'xdg-open'].includes(cmd)) {
             const lastArgIndex = parts.length - 1;
             const pathPart = parts[lastArgIndex];
             

@@ -8,27 +8,28 @@ const term = new Terminal({
     cols: 120,
     rows: 30,
     theme: {
-        background: 'rgba(25, 55, 109, 0)',
-        foreground: '#b0c4de',
-        cursor: '#7a9cc6',
-        cursorAccent: '#193569',
-        selection: 'rgba(122, 156, 198, 0.25)',
-        black: '#2c3e50',
-        red: '#b8666d',
-        green: '#5a9c70',
-        yellow: '#c9a84e',
-        blue: '#6b8cc3',
-        magenta: '#9b6d9d',
-        cyan: '#5fa9aa',
-        white: '#b0c4de',
-        brightBlack: '#546e7a',
-        brightRed: '#d08085',
-        brightGreen: '#7ab084',
-        brightYellow: '#dab863',
-        brightBlue: '#7fa3d6',
-        brightMagenta: '#b087b8',
-        brightCyan: '#7abcbd',
-        brightWhite: '#cfe0ef'
+        background: '#0B0F14',        // primary background - near-black
+        foreground: '#E6EEF3',        // primary text - high contrast off-white
+        cursor: '#E95420',            // accent 1 - Ubuntu orange for visibility
+        cursorAccent: '#0B0F14',      // background behind cursor
+        selection: 'rgba(31, 111, 235, 0.12)', // focus color - subtle blue
+        // ANSI color palette
+        black: '#2C3E50',             // dark gray
+        red: '#FF6B61',               // error - accessible red
+        green: '#17B890',             // success - teal accent
+        yellow: '#D4B03A',            // warning - accessible yellow
+        blue: '#1F6FEB',              // info - focus blue
+        magenta: '#B88EDF',           // purple - complementary
+        cyan: '#00D9FF',              // bright cyan
+        white: '#E6EEF3',             // primary text
+        brightBlack: '#546E7A',       // lighter dark gray
+        brightRed: '#FF8076',         // lighter red
+        brightGreen: '#26D07C',       // lighter green
+        brightYellow: '#E5C158',      // lighter yellow
+        brightBlue: '#3B82F6',        // lighter blue
+        brightMagenta: '#D8B9F1',     // lighter purple
+        brightCyan: '#1FFBF0',        // lighter cyan
+        brightWhite: '#FFFFFF'        // pure white
     },
     scrollback: 1000,
     screenKeys: true,
@@ -54,8 +55,11 @@ let inputBuffer = '';
 
 function getPromptString() {
     const displayPath = currentPath === '/' ? '/' : currentPath;
-    // Using ANSI color codes: Muted red for username/hostname, Muted blue for path
-    return `\x1b[38;5;139m${systemInfo.username}\x1b[0m@\x1b[38;5;139m${systemInfo.hostname}\x1b[0m:\x1b[38;5;67m~${displayPath}\x1b[0m$ `;
+    // Using accent colors: Orange for identity, Teal for path
+    const ORANGE = '\x1b[38;2;233;84;32m';   // #E95420
+    const TEAL = '\x1b[38;2;23;184;144m';    // #17B890
+    const RESET = '\x1b[0m';
+    return `${ORANGE}${systemInfo.username}${RESET}@${ORANGE}${systemInfo.hostname}${RESET}:${TEAL}~${displayPath}${RESET}$ `;
 }
 
 function escapeHtml(text) {
@@ -239,10 +243,12 @@ term.onData((data) => {
 // ============================================================================
 
 function initializeTerminal() {
-    term.write('\x1b[38;5;67m┌─────────────────────────────┐\r\n');
-    term.write('│  Welcome to Terminal CV     │\r\n');
-    term.write('│  Type "help" for commands   │\r\n');
-    term.write('└─────────────────────────────┘\x1b[0m\r\n');
+    const TEAL = '\x1b[38;2;23;184;144m';    // #17B890
+    const RESET = '\x1b[0m';
+    term.write(`${TEAL}┌─────────────────────────────┐${RESET}\r\n`);
+    term.write(`${TEAL}│${RESET}  Welcome to Terminal CV     ${TEAL}│${RESET}\r\n`);
+    term.write(`${TEAL}│${RESET}  Type "help" for commands   ${TEAL}│${RESET}\r\n`);
+    term.write(`${TEAL}└─────────────────────────────┘${RESET}\r\n`);
     term.write('\r\n');
     writePrompt();
 }

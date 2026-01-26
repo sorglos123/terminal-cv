@@ -83,7 +83,7 @@ function handleGrep(args) {
 }
 
 function handleClear() {
-    outputContainer.innerHTML = '';
+    term.clear();
     return '';
 }
 

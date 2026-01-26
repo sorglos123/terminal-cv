@@ -6,6 +6,9 @@
     <title>CV - Terminal</title>
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/terminal.css">
+    <!-- xterm.js -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/xterm@5.3.0/lib/xterm.min.js"></script>
 </head>
 <body>
     <header>
@@ -13,13 +16,7 @@
         <p>Interactive terminal CV</p>
     </header>
     <main>
-        <div id="terminal" class="terminal">
-            <div id="output-container"></div>
-            <div class="terminal-line">
-                <span class="prompt" id="initial-prompt">srgls@blog:~$</span>
-                <input type="text" id="terminal-input" class="terminal-input" autofocus>
-            </div>
-        </div>
+        <div id="terminal" class="terminal-container"></div>
     </main>
     <footer>
         <p>&copy; 2026 CV Terminal. All rights reserved.</p>
@@ -28,6 +25,6 @@
     <script src="js/utils.js"></script>
     <script src="js/system.js"></script>
     <script src="js/commands.js"></script>
-    <script src="js/terminal.js"></script>
+    <script src="js/xterm-terminal.js"></script>
 </body>
 </html>

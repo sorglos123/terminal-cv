@@ -97,6 +97,28 @@ Certifications:
 };
 
 // ============================================================================
+// Derived Content (Single Source of Truth)
+// This object computes virtual file contents once to avoid duplication
+// and inline derivation logic scattered across the fileSystem entries.
+// ============================================================================
+
+const derived = {
+    whoami: `Sascha — Enterprise Systems Engineer (Backup, Virtualization & Automation) at Veeam.`,
+    
+    aboutBio: `I'm an Enterprise Systems Engineer specializing in backup & restore, large-scale virtualization (vSphere, Proxmox), and automation (Ansible, Salt, Terraform). I design and operate resilient backup infrastructures and drive adoption of enterprise backup solutions. I enjoy converting complex architectures into reliable, repeatable operations.`,
+    
+    experienceSummary: `11/2024 – Present — Enterprise Systems Engineer, Veeam — Led enterprise backup reviews and security hardening; improved customer retention and solution adoption.
+10/2021 – 11/2024 — Team Lead Backup & Storage, Dedalus — Architected private cloud backup for 5000+ VMs; operated 170+ ESXi hosts.
+05/2016 – 08/2018 — Consultant, mobileBlox — Pre-sales, training and operational support.`,
+    
+    experienceHighlights: `- Virtualization: vSphere, Proxmox, AHV
+- Backup & Storage: Veeam, Commvault, PureStorage
+- Automation & IaC: Ansible, Salt, Terraform, Packer
+- Languages / Scripting: Python, Bash, PowerShell
+- Containers & Cloud: Docker, Kubernetes, AWS, Azure`
+};
+
+// ============================================================================
 // Virtual File System
 // ============================================================================
 
@@ -112,12 +134,12 @@ const fileSystem = {
     '/about/whoami': {
         type: 'file',
         virtual: true,
-        content: cvContent.about.split('\n')[0]
+        content: derived.whoami
     },
     '/about/bio': {
         type: 'file',
         virtual: true,
-        content: cvContent.about
+        content: derived.aboutBio
     },
     '/experience': {
         type: 'directory',
@@ -126,12 +148,12 @@ const fileSystem = {
     '/experience/summary': {
         type: 'file',
         virtual: true,
-        content: cvContent.experience.split('\n')[0]
+        content: derived.experienceSummary
     },
     '/experience/highlights': {
         type: 'file',
         virtual: true,
-        content: cvContent.experience.split('\n').filter(l => l.includes('-')).join('\n')
+        content: derived.experienceHighlights
     },
     '/experience/full': {
         type: 'file',

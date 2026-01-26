@@ -1,6 +1,23 @@
-// ============================================================================
-// System Information & Simulated Process Management
-// ============================================================================
+let cachedNeofetchRaw = null;
+
+// Preload neofetch output from file
+async function preloadNeofetch() {
+    try {
+        const response = await fetch('./assets/neofetch.txt');
+        if (response.ok) {
+            cachedNeofetchRaw = await response.text();
+        }
+    } catch (error) {
+        console.log('Could not preload neofetch, will use simulated output');
+    }
+}
+
+// Call preload when page loads
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', preloadNeofetch);
+} else {
+    preloadNeofetch();
+}
 
 const systemInfo = {
     hostname: 'blog',
@@ -8,7 +25,11 @@ const systemInfo = {
     platform: 'Ubuntu 24.04 LTS',
     os: 'Ubuntu',
     arch: 'x86_64',
-    kernel: 'JavaScript Runtime (Browser)',
+    kernel: '6.8.0-1019-gke',
+    cpuModel: 'Intel(R) Xeon(R) CPU @ 2.20GHz',
+    cpuCores: 4,
+    memoryTotal: 8192,
+    memoryUsed: 3456,
     uptime: Math.floor(Math.random() * 86400 * 30), // Random uptime in seconds
     
     getSystemInfo() {
@@ -28,8 +49,56 @@ const systemInfo = {
                              Uptime: ${days}d ${hours}h ${mins}m`;
     },
     
+    getNeofetch() {
+        const now = new Date();
+        const uptime = this.uptime;
+        const days = Math.floor(uptime / 86400);
+        const hours = Math.floor((uptime % 86400) / 3600);
+        const mins = Math.floor((uptime % 3600) / 60);
+        const memPercent = Math.round((this.memoryUsed / this.memoryTotal) * 100);
+        const uptimeStr = `${days}d ${hours}h ${mins}m`;
+        
+        // ANSI color codes
+        const ORANGE = '\x1b[38;2;233;84;32m';    // #E95420 - accent 1
+        const TEAL = '\x1b[38;2;23;184;144m';     // #17B890 - accent 2
+        const GRAY = '\x1b[38;2;154;166;178m';    // #9AA6B2 - muted text
+        const RESET = '\x1b[0m';
+        const BOLD = '\x1b[1m';
+        
+        // Memory bar visualization
+        const barWidth = 20;
+        const filledBars = Math.round((memPercent / 100) * barWidth);
+        const emptyBars = barWidth - filledBars;
+        const memBar = '[' + '█'.repeat(filledBars) + '░'.repeat(emptyBars) + '] ' + memPercent + '%';
+        
+        // Return parsed neofetch output that works with xterm.js
+        // This will be loaded from assets/neofetch.txt and displayed directly
+        const neofetchOutput = `${RESET}${this.username}@${this.hostname}
+────────────────────
+${GRAY}OS${RESET}        Ubuntu 24.04.3 LTS x86_64
+${GRAY}Kernel${RESET}    6.8.0-90-generic
+${GRAY}Uptime${RESET}    ${uptimeStr}
+${GRAY}Shell${RESET}     bash 5.2.21
+${GRAY}Terminal${RESET}  xterm-256color
+${GRAY}CPU${RESET}       Common KVM (2) @ 3.000GHz
+${GRAY}Memory${RESET}    ${this.memoryUsed}M / ${this.memoryTotal}M ${memBar}`;
+        
+        return neofetchOutput;
+    },
+    
+    // Load raw neofetch output from assets file
+    async loadNeofetchRaw() {
+        try {
+            const response = await fetch('/assets/neofetch.txt');
+            return await response.text();
+        } catch (error) {
+            console.error('Failed to load neofetch output:', error);
+            return this.getNeofetch();
+        }
+    },
+    
     getUname() {
-        return `Linux ${this.hostname} 6.8.0-1019-gke #1 SMP Ubuntu/Canonical
+        return `Linux ${this.hostname} ${this.kernel} #1 SMP Ubuntu/Canonical
 ${this.arch} ${this.platform}`;
     }
 };

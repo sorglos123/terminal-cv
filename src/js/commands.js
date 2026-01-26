@@ -137,7 +137,23 @@ function handleUname() {
 }
 
 function handleNeofetch() {
-    return systemInfo.getSystemInfo();
+    // Use cached raw neofetch if available, otherwise use simulated
+    if (cachedNeofetchRaw) {
+        // Strip control codes like [?25l, [?7l, [20A, [9999999D etc.
+        // Keep ANSI color/style codes but remove cursor positioning
+        return cachedNeofetchRaw
+            .replace(/\[\?25[lh]/g, '')      // Hide/show cursor
+            .replace(/\[\?7[lh]/g, '')       // Disable/enable line wrapping
+            .replace(/\[\d+A/g, '')          // Move cursor up
+            .replace(/\[\d+B/g, '')          // Move cursor down
+            .replace(/\[\d+C/g, '')          // Move cursor right
+            .replace(/\[\d+D/g, '')          // Move cursor left
+            .replace(/\[\d+;\d+H/g, '')      // Move cursor to position
+            .replace(/\[\d+;\d+f/g, '')      // Move cursor to position (alternate)
+            .trim();
+    }
+    // Fallback to simulated neofetch
+    return systemInfo.getNeofetch();
 }
 
 function handleHtop() {

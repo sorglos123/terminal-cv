@@ -56,8 +56,9 @@ function handleCat(args) {
     return entry.content;
 }
 
+// whoami no longer reads a file; it returns the derived whoami value
 function handleWhoami() {
-    return cvContent.about.split('\n')[0];
+    return (typeof derived !== 'undefined' && derived.whoami) ? derived.whoami : fileSystem['/about/whoami']?.content || '';
 }
 
 function handleTree(args) {

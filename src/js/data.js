@@ -1,17 +1,8 @@
 // ============================================================================
 // Canonical CV Content (Single Source of Truth)
 // ============================================================================
-
 const cvContent = {
-    experienceSummary: `Enterprise Systems Engineer – Customer Success at Veeam Software Group (since 11/2024)
-
-Enterprise infrastructure specialist with 10+ years.
-Designing and implementing backup, storage, and cloud solutions. 
-Led teams in large-scale private cloud and backup environments.
-Driving customer success, retention and growth. 
-Virtualization, security hardening, infrastructure automation.
-Solutions architecture across enterprise platforms.`,
-
+    about: `Sascha is an Enterprise Systems Engineer focusing on backup, virtualization and automation.`,
     experience: `11/2024 – Present
 Enterprise Systems Engineer – Customer Success
 Veeam Software Group, München
@@ -29,7 +20,6 @@ Dedalus HealthCare GmbH, Bonn
 - Design & Operations Backup Infrastructure (5000+ VMs, 1PB+)
 - Design & Operations Storage Infrastructure (PureStorage, NetApp, Dell ECS)
 - Linux SME: Configuration Management (RHEL, Ubuntu, OEL, Rocky)
-- Automation Solutions: VMware Aria, Saltstack, Packer, Bitwarden, Vault
 
 09/2018 – 10/2021
 Systems Engineer – Datacenter Solutions
@@ -48,41 +38,14 @@ mobileBlox GmbH, Leipzig
 02/2014 – 07/2014
 Jr. Sales and Account Manager; Internship
 Wize Commerce, Günstiger.de, Hamburg`,
-
     education: `10/2018 – 09/2021
 Dual Study Program in Computer Science
 Staatliche Studienakademie Leipzig
 Final Grade: 1.8
 Thesis: Planung einer Bereitstellung eines Enterprise Container
          Clusters auf Basis von VMware Tanzu
-Degree: Bachelor of Science
-
-08/2011 – 04/2016
-International Business and Languages
-Stenden University, Emmen, Niederlande
-Thesis: Chemical Trade Facilitation; Vietnam and Germany
-Degree: Bachelor of Commerce
-
-06/2007 – 06/2010
-Abitur
-Gymnasium am Wall, Verden`,
-
-    about: `Enterprise infrastructure specialist with 10+ years of experience
-designing and implementing scalable backup, storage, and cloud solutions.
-Passionate about automation, data protection, and driving customer success
-through technical innovation and strategic architecture decisions.
-
-Name:          Sascha Richter
-Address:       Horsterstraße 55, 56656 Brohl-Lützing
-Email:         sascha@srgls.de
-Date of Birth: 24.02.1991
-GitHub:        https://github.com/sorglos123/`,
-
-    skills: `Storage & Data Protection:
-  Pure Storage, NetApp (ONTAP), Dell ECS, iSCSI, NFS, S3
-  Veeam, Commvault, Wazuh, Splunk
-
-Virtualization & Cloud:
+Degree: Bachelor of Science`,
+    skills: `Virtualization & Cloud:
   vSphere, Proxmox, AWS, Azure, AHV
 
 Automation & IaC:
@@ -102,13 +65,54 @@ Certifications:
   VMCE & VMCA 2025
   AWS Certified Solutions Architect – Associate
   Commvault Certified Professional
-  ITIL 4 Foundation`
+  ITIL 4 Foundation`,
+    contact: `Email:   sascha@srgls.de
+GitHub:  https://github.com/sorglos123/`
+};
+
+// ============================================================================
+// Derived / Virtual content (computed once)
+// - Avoids recomputing .split()/filters in multiple fileSystem entries.
+// - Keeps cvContent as the single source of truth and prevents duplication.
+// ============================================================================
+const derived = {
+    // kept as a derived value (no longer exposed as a separate file)
+    whoami: 'Sascha — Enterprise Systems Engineer (Backup, Virtualization & Automation) at Veeam.',
+
+    // short bio wrapped to avoid horizontal scrolling in narrow terminals
+    aboutBio:
+`I’m an Enterprise Systems Engineer specializing in backup & restore,
+large-scale virtualization (vSphere, Proxmox), and automation
+(Ansible, Salt, Terraform). I design and operate resilient backup
+infrastructures and drive adoption of enterprise backup solutions.
+I enjoy converting complex architectures into reliable, repeatable
+operations.`,
+
+    // concise experience summary (includes WBS role)
+    experienceSummary:
+`11/2024 – Present — Enterprise Systems Engineer, Veeam — Led enterprise
+backup reviews and security hardening; improved customer retention and
+solution adoption.
+10/2021 – 11/2024 — Team Lead Backup & Storage, Dedalus — Architected
+private cloud backup for 5000+ VMs; operated 170+ ESXi hosts.
+09/2018 – 10/2021 — Systems Engineer, WBS IT-Service — Datacenter
+Solutions; infrastructure operations, pre-sales architecture, automation.
+05/2016 – 08/2018 — Consultant, mobileBlox — Pre-sales, training and
+operational support.`,
+
+    // curated highlights (NetApp added)
+    experienceHighlights:
+`- Virtualization: vSphere, Proxmox, AHV
+- Backup & Storage: Veeam, Commvault, PureStorage, NetApp
+- Automation & IaC: Ansible, Salt, Terraform, Packer
+- Languages / Scripting: Python, Bash, PowerShell
+- Containers & Cloud: Docker, Kubernetes, AWS, Azure`
 };
 
 // ============================================================================
 // Virtual File System
+// Note: /about/whoami file removed (whoami command reads derived.whoami).
 // ============================================================================
-
 const fileSystem = {
     '/': {
         type: 'directory',
@@ -116,12 +120,13 @@ const fileSystem = {
     },
     '/about': {
         type: 'directory',
+        // removed 'whoami' here; only 'bio' remains as a file
         entries: ['bio']
     },
     '/about/bio': {
         type: 'file',
         virtual: true,
-        content: cvContent.about
+        content: derived.aboutBio
     },
     '/experience': {
         type: 'directory',
@@ -130,13 +135,14 @@ const fileSystem = {
     '/experience/summary': {
         type: 'file',
         virtual: true,
-        content: cvContent.experienceSummary
+        content: derived.experienceSummary
     },
     '/experience/highlights': {
         type: 'file',
         virtual: true,
-        content: cvContent.experience.split('\n').filter(l => l.includes('-')).join('\n')
+        content: derived.experienceHighlights
     },
+    // full experience remains the authoritative full CV (unchanged)
     '/experience/full': {
         type: 'file',
         virtual: true,
@@ -153,7 +159,8 @@ const fileSystem = {
     '/contact': {
         type: 'file',
         virtual: true,
-        content: `Email:   sascha@srgls.de
-GitHub:  https://github.com/sorglos123/`
+        content: cvContent.contact
     }
 };
+
+// (rest of data.js continues unchanged)

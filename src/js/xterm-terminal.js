@@ -94,6 +94,8 @@ let historyIndex = -1;
 let inputBuffer = '';
 let cursorPos = 0;  // Cursor position within inputBuffer
 let htopMode = false;  // Track if we're in htop/btop mode
+let passwordMode = false;  // Track if we're waiting for sudo password
+let passwordBuffer = '';  // Store password input
 
 // ============================================================================
 // Utility Functions
@@ -137,6 +139,7 @@ const commandRegistry = {
     'neofetch': { desc: 'Show system info with ASCII art', handler: handleNeofetch },
     'htop': { desc: 'Simulated process monitor', handler: handleHtop },
     'btop': { desc: 'Simulated process monitor (alias to htop)', handler: handleBtop },
+    'sudo': { desc: 'Execute command as superuser (easter egg)', handler: handleSudo },
     'clear': { desc: 'Clear terminal', handler: handleClear },
     'exit': { desc: 'Exit terminal', handler: handleExit }
 };
@@ -222,6 +225,27 @@ term.onData((data) => {
     if (data === '\r') {
         // Enter key
         term.write('\r\n');
+        
+        // Handle password mode
+        if (passwordMode) {
+            const password = passwordBuffer;
+            passwordBuffer = '';
+            passwordMode = false;
+            
+            // Always reject the password
+            term.write('\x1b[1;31m');  // Bold red
+            term.write('Sorry, try again.\r\n');
+            term.write('\x1b[0m');  // Reset
+            
+            // Famous sudo Easter egg message
+            term.write('\x1b[1;33m');  // Bold yellow
+            term.write('[sudo] This incident will be reported.\r\n');
+            term.write('\x1b[0m');  // Reset
+            
+            writePrompt();
+            return;
+        }
+        
         const input = inputBuffer.trim();
         inputBuffer = '';
         cursorPos = 0;
@@ -236,6 +260,14 @@ term.onData((data) => {
         
         if (cmd) {
             const handler = commandRegistry[cmd.toLowerCase()]?.handler;
+            
+            // Special handling for sudo - password prompt
+            if (cmd.toLowerCase() === 'sudo' && handler) {
+                passwordMode = true;
+                passwordBuffer = '';
+                term.write('[sudo] password for ' + systemInfo.username + ': ');
+                return;
+            }
             
             // Special handling for htop/btop - enter live mode
             if ((cmd.toLowerCase() === 'htop' || cmd.toLowerCase() === 'btop') && handler) {
@@ -260,7 +292,12 @@ term.onData((data) => {
         writePrompt();
     } else if (data === '\u007F') {
         // Backspace
-        if (cursorPos > 0) {
+        if (passwordMode) {
+            if (passwordBuffer.length > 0) {
+                passwordBuffer = passwordBuffer.slice(0, -1);
+                term.write('\b \b');
+            }
+        } else if (cursorPos > 0) {
             // Remove character before cursor
             inputBuffer = inputBuffer.slice(0, cursorPos - 1) + inputBuffer.slice(cursorPos);
             cursorPos--;
@@ -330,17 +367,24 @@ term.onData((data) => {
             term.write(toAdd);
         }
     } else if (data.charCodeAt(0) >= 32) {
-        // Printable characters - insert at cursor position
-        inputBuffer = inputBuffer.slice(0, cursorPos) + data + inputBuffer.slice(cursorPos);
-        cursorPos++;
-        
-        // Write the character and redraw rest of line
-        const restOfLine = inputBuffer.slice(cursorPos);
-        term.write(data + restOfLine);
-        
-        // Move cursor back to correct position
-        for (let i = 0; i < restOfLine.length; i++) {
-            term.write('\b');
+        // Printable characters
+        if (passwordMode) {
+            // In password mode, collect input but don't echo it
+            passwordBuffer += data;
+            term.write('*');  // Show asterisk instead of character
+        } else {
+            // Insert at cursor position
+            inputBuffer = inputBuffer.slice(0, cursorPos) + data + inputBuffer.slice(cursorPos);
+            cursorPos++;
+            
+            // Write the character and redraw rest of line
+            const restOfLine = inputBuffer.slice(cursorPos);
+            term.write(data + restOfLine);
+            
+            // Move cursor back to correct position
+            for (let i = 0; i < restOfLine.length; i++) {
+                term.write('\b');
+            }
         }
     }
 });

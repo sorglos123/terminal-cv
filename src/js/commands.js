@@ -82,6 +82,17 @@ function handleGrep(args) {
     return matches.length ? matches.join('\n') : '';
 }
 
+function handleSudo(args) {
+    // Easter egg: trigger password prompt in xterm terminal
+    if (typeof passwordMode !== 'undefined') {
+        passwordMode = true;
+        passwordBuffer = '';
+        // Return empty string since the prompt will be handled by xterm
+        return '';
+    }
+    return 'sudo: command not found (this is a simulation)';
+}
+
 function handleClear() {
     term.clear();
     return '';

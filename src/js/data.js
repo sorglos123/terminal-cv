@@ -116,7 +116,7 @@ operational support.`,
 const fileSystem = {
     '/': {
         type: 'directory',
-        entries: ['about', 'assets', 'education', 'experience', 'skills', 'contact', 'projects']
+        entries: ['about', 'assets', 'experience', 'skills', 'contact', 'projects']
     },
     '/assets': {
         type: 'directory',
@@ -133,13 +133,16 @@ const fileSystem = {
     },
     '/about': {
         type: 'directory',
-        // removed 'whoami' here; only 'bio' remains as a file
-        entries: ['bio']
+        entries: ['bio', 'education']
     },
     '/about/bio': {
         type: 'file',
         virtual: true,
         content: derived.aboutBio
+    },
+    '/about/education': {
+        type: 'file',
+        content: cvContent.education
     },
     '/experience': {
         type: 'directory',
@@ -161,18 +164,14 @@ const fileSystem = {
         virtual: true,
         content: cvContent.experience
     },
-    '/education': {
-        type: 'file',
-        content: cvContent.education
-    },
-    '/skills': {
-        type: 'file',
-        content: cvContent.skills
-    },
     '/contact': {
         type: 'file',
         virtual: true,
         content: cvContent.contact
+    },
+    '/skills': {
+        type: 'file',
+        content: cvContent.skills
     },
     '/projects': {
         type: 'directory',

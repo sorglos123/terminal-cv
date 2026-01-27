@@ -320,50 +320,81 @@ term.onData((data) => {
         const cmd = parts[0].toLowerCase();
         const currentPart = parts[parts.length - 1];
         
-        let matches = [];
+        let completion = null;  // The full completion string to append
         
         // Autocomplete commands
         if (parts.length === 1) {
-            matches = Object.keys(commandRegistry)
+            const matches = Object.keys(commandRegistry)
                 .filter(c => c.startsWith(currentPart))
-                .map(c => c);
+                .sort();
+            if (matches.length > 0) {
+                completion = matches[0];
+            }
         }
         // Autocomplete paths
         else if (['cat', 'less', 'cd', 'ls', 'grep', 'open', 'xdg-open'].includes(cmd)) {
-            const lastArgIndex = parts.length - 1;
-            const pathPart = parts[lastArgIndex];
+            const pathPart = currentPart;  // e.g., "about/b" or "/about/b"
             
             let dirPath = '/';
-            let filePrefix = pathPart;
+            let filePrefix = '';
+            let originalPathPrefix = '';  // To preserve relative/absolute format
             
             if (pathPart.includes('/')) {
                 const lastSlash = pathPart.lastIndexOf('/');
-                dirPath = pathPart.substring(0, lastSlash + 1);
-                filePrefix = pathPart.substring(lastSlash + 1);
-                dirPath = resolvePath(dirPath);
+                originalPathPrefix = pathPart.substring(0, lastSlash + 1);  // e.g., "about/" or "/about/"
+                filePrefix = pathPart.substring(lastSlash + 1);             // e.g., "b"
+                dirPath = resolvePath(originalPathPrefix);                   // Resolve to absolute
             } else if (pathPart.startsWith('/')) {
                 dirPath = '/';
                 filePrefix = pathPart.substring(1);
             } else {
+                originalPathPrefix = '';
                 dirPath = currentPath;
+                filePrefix = pathPart;
             }
             
             const dirEntry = fileSystem[dirPath];
             if (dirEntry && dirEntry.type === 'directory') {
                 const entries = dirEntry.entries || [];
-                matches = entries
+                const matchingEntries = entries
                     .filter(e => e.startsWith(filePrefix))
-                    .map(e => {
-                        const fullPath = dirPath === '/' ? '/' + e : dirPath + '/' + e;
-                        const entry = fileSystem[fullPath];
-                        return entry && entry.type === 'directory' ? e + '/' : e;
-                    });
+                    .sort();
+                
+                if (matchingEntries.length > 0) {
+                    const matched = matchingEntries[0];
+                    const fullResolvedPath = dirPath === '/' ? '/' + matched : dirPath + '/' + matched;
+                    const isDir = fileSystem[fullResolvedPath] && fileSystem[fullResolvedPath].type === 'directory';
+                    
+                    // Construct the completion using the original path format (relative or absolute)
+                    if (originalPathPrefix || pathPart.startsWith('/')) {
+                        // Path with directories
+                        completion = originalPathPrefix + matched + (isDir ? '/' : '');
+                    } else {
+                        // Just filename
+                        completion = matched + (isDir ? '/' : '');
+                    }
+                }
             }
         }
         
-        if (matches.length > 0) {
-            const toAdd = matches[0].substring(currentPart.length);
-            inputBuffer += toAdd;
+        if (completion) {
+            // Find where the last argument starts
+            let argStartIndex = 0;
+            for (let i = inputBuffer.length - 1; i >= 0; i--) {
+                if (inputBuffer[i] === ' ') {
+                    argStartIndex = i + 1;
+                    break;
+                }
+            }
+            
+            const currentArg = inputBuffer.substring(argStartIndex);
+            const toAdd = completion.substring(currentArg.length);
+            
+            // Update buffer and cursor
+            inputBuffer = inputBuffer.substring(0, argStartIndex) + completion;
+            cursorPos = inputBuffer.length;
+            
+            // Display the added portion
             term.write(toAdd);
         }
     } else if (data.charCodeAt(0) >= 32) {

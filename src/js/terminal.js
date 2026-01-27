@@ -94,6 +94,8 @@ terminalInput.addEventListener('keydown', (e) => {
         if (historyIndex < commandHistory.length - 1) {
             historyIndex++;
             terminalInput.value = commandHistory[commandHistory.length - 1 - historyIndex];
+            // Move cursor to end
+            terminalInput.selectionStart = terminalInput.selectionEnd = terminalInput.value.length;
         }
         return;
     }
@@ -106,6 +108,27 @@ terminalInput.addEventListener('keydown', (e) => {
         } else if (historyIndex === 0) {
             historyIndex = -1;
             terminalInput.value = '';
+        }
+        // Move cursor to end
+        terminalInput.selectionStart = terminalInput.selectionEnd = terminalInput.value.length;
+        return;
+    }
+    
+    // Cursor movement with left and right arrows
+    if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        const cursorPos = terminalInput.selectionStart;
+        if (cursorPos > 0) {
+            terminalInput.selectionStart = terminalInput.selectionEnd = cursorPos - 1;
+        }
+        return;
+    }
+    
+    if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        const cursorPos = terminalInput.selectionStart;
+        if (cursorPos < terminalInput.value.length) {
+            terminalInput.selectionStart = terminalInput.selectionEnd = cursorPos + 1;
         }
         return;
     }

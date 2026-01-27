@@ -92,6 +92,7 @@ let currentPath = '/';
 let commandHistory = [];
 let historyIndex = -1;
 let inputBuffer = '';
+let cursorPos = 0;  // Cursor position within inputBuffer
 let htopMode = false;  // Track if we're in htop/btop mode
 
 // ============================================================================
@@ -169,6 +170,7 @@ term.onData((data) => {
                 }
                 
                 inputBuffer = historyItem;
+                cursorPos = inputBuffer.length;
                 term.write(inputBuffer);
             }
             return;
@@ -184,6 +186,7 @@ term.onData((data) => {
                 }
                 
                 inputBuffer = historyItem;
+                cursorPos = inputBuffer.length;
                 term.write(inputBuffer);
             } else if (historyIndex === 0) {
                 historyIndex = -1;
@@ -194,6 +197,21 @@ term.onData((data) => {
                 }
                 
                 inputBuffer = '';
+                cursorPos = 0;
+            }
+            return;
+        } else if (data === '\x1b[C') {
+            // Arrow Right - move cursor right
+            if (cursorPos < inputBuffer.length) {
+                cursorPos++;
+                term.write('\x1b[C');  // Send cursor right escape sequence
+            }
+            return;
+        } else if (data === '\x1b[D') {
+            // Arrow Left - move cursor left
+            if (cursorPos > 0) {
+                cursorPos--;
+                term.write('\x1b[D');  // Send cursor left escape sequence
             }
             return;
         }
@@ -206,6 +224,7 @@ term.onData((data) => {
         term.write('\r\n');
         const input = inputBuffer.trim();
         inputBuffer = '';
+        cursorPos = 0;
         
         if (input.length > 0) {
             commandHistory.push(input);
@@ -241,9 +260,22 @@ term.onData((data) => {
         writePrompt();
     } else if (data === '\u007F') {
         // Backspace
-        if (inputBuffer.length > 0) {
-            inputBuffer = inputBuffer.slice(0, -1);
-            term.write('\b \b');
+        if (cursorPos > 0) {
+            // Remove character before cursor
+            inputBuffer = inputBuffer.slice(0, cursorPos - 1) + inputBuffer.slice(cursorPos);
+            cursorPos--;
+            
+            // Move cursor back and clear the character
+            term.write('\b');
+            
+            // Redraw from cursor position to end
+            const restOfLine = inputBuffer.slice(cursorPos);
+            term.write(restOfLine + ' ');
+            
+            // Move cursor back to position
+            for (let i = 0; i < restOfLine.length + 1; i++) {
+                term.write('\b');
+            }
         }
     } else if (data === '\u0009') {
         // Tab - autocomplete
@@ -298,9 +330,18 @@ term.onData((data) => {
             term.write(toAdd);
         }
     } else if (data.charCodeAt(0) >= 32) {
-        // Printable characters
-        inputBuffer += data;
-        term.write(data);
+        // Printable characters - insert at cursor position
+        inputBuffer = inputBuffer.slice(0, cursorPos) + data + inputBuffer.slice(cursorPos);
+        cursorPos++;
+        
+        // Write the character and redraw rest of line
+        const restOfLine = inputBuffer.slice(cursorPos);
+        term.write(data + restOfLine);
+        
+        // Move cursor back to correct position
+        for (let i = 0; i < restOfLine.length; i++) {
+            term.write('\b');
+        }
     }
 });
 

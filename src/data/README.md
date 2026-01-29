@@ -77,11 +77,11 @@ The application loads your CV data from this file and uses it to:
 - Display information through various terminal commands
 - Generate derived content (like bio summaries and highlights)
 
-The production code in `src/js/data.js` imports this file and handles all the logic for presenting your data in the terminal interface.
+The production code in `src/js/data.js` uses the cvContent object from this file and handles all the logic for presenting your data in the terminal interface.
 
 ## Need Help?
 
-- Check the main [README.md](../README.md) for application features and commands
+- Check the main [README.md](../../README.md) for application features and commands
 - Review the existing content as examples for formatting
 - The application structure is designed to be intuitive - if you preserve the basic format, it will work!
 

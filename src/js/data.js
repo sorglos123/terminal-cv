@@ -1,5 +1,5 @@
 // ============================================================================
-// CV Content is loaded from /data/cv-content.js
+// CV Content is loaded from data/cv-content.js
 // ============================================================================
 // The cvContent object is now defined in the src/data/ directory for easy
 // customization. This file handles the presentation logic only.

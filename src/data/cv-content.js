@@ -40,7 +40,7 @@ Systems Engineer – Datacenter Solutions
 WBS IT-Service GmbH, Leipzig
 - Infrastructure Operations: Virtualization, Backup, Storage
 - Pre-Sales & Architecture of Backup Environments
-- Automation: Powershell and Python
+- Automation: PowerShell and Python
 
 05/2016 – 08/2018
 Consultant
@@ -89,8 +89,3 @@ Certifications:
     contact: `Email:   sascha@srgls.de
 GitHub:  https://github.com/sorglos123/`
 };
-
-// Export for use in the application
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { cvContent };
-}

@@ -22,7 +22,7 @@ test.describe('Terminal CV E2E Tests', () => {
             // Check that terminal has content
             const hasContent = await page.evaluate(() => {
                 const terminalEl = document.querySelector('#terminal');
-                return terminalEl && terminalEl.querySelector('.xterm-screen');
+                return !!(terminalEl && terminalEl.querySelector('.xterm-screen'));
             });
             
             expect(hasContent).toBe(true);
@@ -65,7 +65,7 @@ test.describe('Terminal CV E2E Tests', () => {
             });
             
             // At minimum, we typed something
-            expect(inputBufferExists).toBeDefined();
+            expect(inputBufferExists).toBe(true);
         });
     });
 

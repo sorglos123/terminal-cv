@@ -31,20 +31,25 @@ An interactive terminal-based CV application built with **xterm.js**, featuring 
 ## Project Structure
 
 ```
-cv-site/
+terminal-cv/
 ├── src/
+│   ├── data/                # CV data (user-editable)
+│   │   ├── cv-content.js    # Your CV content - edit this!
+│   │   └── README.md        # Customization guide
 │   ├── index.html
 │   ├── css/
 │   │   ├── style.css
 │   │   └── terminal.css
 │   ├── js/
-│   │   ├── data.js
+│   │   ├── data.js          # File system logic
 │   │   ├── utils.js
 │   │   ├── system.js
 │   │   ├── commands.js
 │   │   └── xterm-terminal.js
 │   └── assets/
+│       ├── cv_SRichter2026.pdf
 │       └── neofetch.txt
+├── tests/                   # Test suite
 ├── README.md
 └── package.json
 ```
@@ -53,21 +58,63 @@ cv-site/
 
 ### Prerequisites
 - Modern web browser (Chrome, Firefox, Safari, Edge)
-- Local web server
+- Local web server (for local development)
 
-### Installation
+### Quick Start
+
+1. **Clone or Download** the repository
+2. **Customize your CV** (see [Customization](#customization) section)
+3. **Run a local server**:
 
 ```bash
-cd cv-site
-
 # Using Python 3
 python3 -m http.server 8000
 
 # Using Node.js
-npx http-server
+npx http-server src -p 8000
+
+# Using npm (if installed)
+npm install
+npm run serve
 
 # Then open http://localhost:8000
 ```
+
+## Customization
+
+**This project is designed to be easily customizable!** All CV data is separated from the production code for easy personalization.
+
+### How to Customize Your CV
+
+1. **Edit `src/data/cv-content.js`** - This file contains all your CV information:
+   - Professional summary (`about`)
+   - Work experience (`experience`)
+   - Education (`education`)
+   - Skills and certifications (`skills`)
+   - Contact information (`contact`)
+
+2. **Save and refresh** - Your changes will appear immediately when you reload the page
+
+3. **Follow the formatting guidelines** in the file comments for best results
+
+### Detailed Instructions
+
+See **[src/data/README.md](src/data/README.md)** for comprehensive customization instructions including:
+- Structure of the CV data
+- Formatting tips
+- Examples and best practices
+- Troubleshooting
+
+### What to Customize
+
+✅ **Recommended to edit:**
+- `src/data/cv-content.js` - All your personal CV information
+- `src/assets/cv_*.pdf` - Replace with your actual PDF resume
+
+⚠️ **Production code (no need to edit for basic customization):**
+- `src/js/data.js` - File system and presentation logic
+- `src/js/commands.js` - Command handlers
+- Other files in `src/js/` - Core terminal functionality
 
 ## Usage Examples
 
@@ -116,7 +163,7 @@ $ [Press Tab]
 
 ## Development
 
-### Adding Commands
+### Adding New Commands
 Edit `src/js/commands.js`:
 
 ```javascript
@@ -127,10 +174,11 @@ function handleMyCommand(args) {
 commandRegistry['mycommand'] = { desc: 'Description', handler: handleMyCommand };
 ```
 
-### Customizing
-- **Colors**: Edit `theme` object in `xterm-terminal.js`
-- **Font**: Modify `.xterm` class in `terminal.css`
-- **Container Size**: Adjust `.terminal-container` height in `terminal.css`
+### Advanced Customization
+- **Colors**: Edit `theme` object in `src/js/xterm-terminal.js`
+- **Font**: Modify `.xterm` class in `src/css/terminal.css`
+- **Container Size**: Adjust `.terminal-container` height in `src/css/terminal.css`
+- **Virtual File System**: Extend the file system structure in `src/js/data.js`
 
 ## Performance
 

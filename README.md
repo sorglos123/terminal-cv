@@ -146,6 +146,28 @@ commandRegistry['mycommand'] = { desc: 'Description', handler: handleMyCommand }
 | Firefox (v55+) | ✅ Full |
 | Safari (v11+) | ✅ Full |
 
+## Testing
+
+Comprehensive test suite with **59 passing tests** covering app responsiveness, cursor movement, autocompletion, and all commands.
+
+### Quick Start
+```bash
+npm install           # Install test dependencies
+npm run test:unit     # Run unit tests (39 tests)
+npm run test:integration  # Run integration tests (20 tests)
+npm run test:e2e      # Run E2E browser tests (22 tests)
+```
+
+### What's Tested
+- ✅ **Responsiveness**: Terminal initialization and resizing
+- ✅ **Cursor Movement**: Arrow keys, backspace, character insertion
+- ✅ **Autocompletion**: Tab completion for commands and paths
+- ✅ **Command Functionality**: All 19 commands with error handling
+- ✅ **Command History**: Up/down arrow navigation
+- ✅ **Special Modes**: htop, password prompts
+
+See [TESTING_SUMMARY.md](TESTING_SUMMARY.md) and [tests/README.md](tests/README.md) for details.
+
 ## Troubleshooting
 
 **Terminal not showing**: Verify xterm.js CDN scripts load and terminal div exists

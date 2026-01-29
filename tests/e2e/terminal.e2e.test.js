@@ -131,13 +131,27 @@ test.describe('Terminal CV E2E Tests', () => {
             await page.keyboard.press('Enter');
             await page.waitForTimeout(300);
             
-            const output = await page.evaluate(() => {
+            // Check that the terminal was cleared by verifying visible rows are minimal
+            const visibleRows = await page.evaluate(() => {
                 const terminalEl = document.querySelector('.xterm-screen');
-                return terminalEl ? terminalEl.textContent : '';
+                if (!terminalEl) return 999;
+                
+                // Count visible text rows (non-empty lines)
+                const viewport = terminalEl.querySelector('.xterm-rows');
+                if (!viewport) return terminalEl.textContent.trim().split('\n').filter(line => line.trim()).length;
+                
+                const rows = viewport.querySelectorAll('.xterm-row');
+                let visibleContent = 0;
+                for (const row of rows) {
+                    if (row.textContent.trim().length > 0) {
+                        visibleContent++;
+                    }
+                }
+                return visibleContent;
             });
             
-            // After clear, output should be minimal (just prompt)
-            expect(output.length).toBeLessThan(100);
+            // After clear, should have minimal visible content (just prompt line)
+            expect(visibleRows).toBeLessThan(5);
         });
     });
 

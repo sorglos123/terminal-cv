@@ -8,6 +8,19 @@
 // Note: cvContent and projectsContent are loaded globally from their respective files
 // ============================================================================
 
+// Safety check: Ensure cvContent is defined
+if (typeof cvContent === 'undefined') {
+    console.error('ERROR: cvContent is not defined! Make sure data/cv-content.js is loaded before data.js');
+    // Provide a minimal fallback
+    window.cvContent = {
+        about: 'CV content not loaded',
+        experience: 'CV content not loaded',
+        education: 'CV content not loaded',
+        skills: 'CV content not loaded',
+        contact: 'CV content not loaded'
+    };
+}
+
 // ============================================================================
 // Derived / Virtual content (computed once)
 // - Avoids recomputing .split()/filters in multiple fileSystem entries.
@@ -116,14 +129,16 @@ const fileSystem = {
 // ============================================================================
 // Build projects dynamically from projectsContent configuration
 // ============================================================================
-// Projects directory
-fileSystem['/projects'] = {
-    type: 'directory',
-    entries: projectsContent.map(p => p.filename).sort()
-};
+// Check if projectsContent is defined before using it
+if (typeof projectsContent !== 'undefined' && Array.isArray(projectsContent)) {
+    // Projects directory
+    fileSystem['/projects'] = {
+        type: 'directory',
+        entries: projectsContent.map(p => p.filename).sort()
+    };
 
-// Individual project files
-projectsContent.forEach(project => {
+    // Individual project files
+    projectsContent.forEach(project => {
     const content = [
         project.title,
         '',
@@ -143,5 +158,12 @@ projectsContent.forEach(project => {
         content: content.join('\n')
     };
 });
+} else {
+    console.warn('projectsContent is not defined or not an array. Projects directory will be empty.');
+    fileSystem['/projects'] = {
+        type: 'directory',
+        entries: []
+    };
+}
 
 // (rest of data.js continues unchanged)

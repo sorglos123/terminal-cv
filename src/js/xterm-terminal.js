@@ -150,11 +150,17 @@ const commandRegistry = {
 
 term.onData((data) => {
     // Handle q key to exit htop/btop mode
-    if (htopMode && (data === 'q' || data === 'Q')) {
+    if (htopMode && (data === 'q' || data === 'Q' || data === '\x03' || data === '\r')) {
+        // Exit on 'q', 'Q', Ctrl+C, or Enter
         htopMode = false;
         processSimulator.stop();
         term.write('\r\n');
         writePrompt();
+        return;
+    }
+    
+    // Ignore all other input in htop mode
+    if (htopMode) {
         return;
     }
     

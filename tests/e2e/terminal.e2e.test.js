@@ -13,6 +13,20 @@ test.describe('Terminal CV E2E Tests', () => {
         await page.waitForSelector('#terminal', { timeout: 10000 });
         await page.waitForTimeout(1000); // Give xterm.js time to initialize
     });
+    
+    test.afterEach(async ({ page }) => {
+        // Cleanup: Stop any running intervals (htop/btop/etc)
+        await page.evaluate(() => {
+            if (typeof processSimulator !== 'undefined') {
+                processSimulator.stop();
+            }
+            if (typeof htopMode !== 'undefined') {
+                htopMode = false;
+            }
+        }).catch(() => {
+            // Ignore errors if variables don't exist
+        });
+    });
 
     test.describe('Terminal Initialization and Responsiveness', () => {
         test('terminal loads and displays initial prompt', async ({ page }) => {

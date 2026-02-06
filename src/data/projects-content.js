@@ -46,5 +46,14 @@ const projectsContent = [
         publishedOn: 'Veeam Community',
         url: 'https://community.veeam.com/blogs-and-podcasts-57/automate-backup-tagging-with-veeam-one-a-smarter-way-to-organize-your-jobs-12048',
         description: ''
+    },
+    {
+        filename: 'techno-liveset.md',
+        title: 'Techno Liveset with Ableton Live and apc25',
+        author: 'Sascha Richter',
+        publishedOn: 'Youtube',
+        url: 'https://www.youtube.com/watch?v=PiP5nS6o0DE',
+        description: ''
     }
+    
 ];

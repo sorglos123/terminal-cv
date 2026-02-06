@@ -209,24 +209,36 @@ ${GRAY}Press 'q' to quit${RESET}`;
     }
     
     startLive(updateCallback) {
+        // Stop any existing interval first
+        this.stop();
+        
         this.isRunning = true;
+        this.iterationCount = 0;
+        const MAX_ITERATIONS = 200; // Max 100 seconds (200 * 500ms)
+        
         // Clear screen initially
         updateCallback(this.getHtopOutput());
         
         // Update every 500ms
         this.updateInterval = setInterval(() => {
-            if (!this.isRunning) {
-                clearInterval(this.updateInterval);
+            if (!this.isRunning || this.iterationCount >= MAX_ITERATIONS) {
+                this.stop();
+                if (this.iterationCount >= MAX_ITERATIONS) {
+                    console.log('htop auto-stopped after timeout');
+                }
                 return;
             }
+            this.iterationCount++;
             updateCallback(this.getHtopOutput());
         }, 500);
     }
     
     stop() {
         this.isRunning = false;
+        this.iterationCount = 0;
         if (this.updateInterval) {
             clearInterval(this.updateInterval);
+            this.updateInterval = null;
         }
     }
 }

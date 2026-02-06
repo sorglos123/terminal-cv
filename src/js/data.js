@@ -54,7 +54,7 @@ operational support.`,
 const fileSystem = {
     '/': {
         type: 'directory',
-        entries: ['about', 'assets', 'experience', 'skills', 'contact', 'projects']
+        entries: ['about', 'assets', 'contact', 'experience', 'projects', 'skills']
     },
     '/assets': {
         type: 'directory',
@@ -84,7 +84,7 @@ const fileSystem = {
     },
     '/experience': {
         type: 'directory',
-        entries: ['summary', 'highlights', 'full']
+        entries: ['full', 'highlights', 'summary']
     },
     '/experience/summary': {
         type: 'file',
@@ -119,7 +119,7 @@ const fileSystem = {
 // Projects directory
 fileSystem['/projects'] = {
     type: 'directory',
-    entries: projectsContent.map(p => p.filename)
+    entries: projectsContent.map(p => p.filename).sort()
 };
 
 // Individual project files

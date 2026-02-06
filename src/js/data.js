@@ -1,10 +1,11 @@
 // ============================================================================
 // CV Content is loaded from data/cv-content.js
+// Projects Content is loaded from data/projects-content.js
 // ============================================================================
-// The cvContent object is now defined in the src/data/ directory for easy
-// customization. This file handles the presentation logic only.
+// The cvContent and projectsContent objects are now defined in the src/data/
+// directory for easy customization. This file handles the presentation logic only.
 //
-// Note: cvContent is loaded globally from data/cv-content.js
+// Note: cvContent and projectsContent are loaded globally from their respective files
 // ============================================================================
 
 // ============================================================================
@@ -109,26 +110,38 @@ const fileSystem = {
     '/skills': {
         type: 'file',
         content: cvContent.skills
-    },
-    '/projects': {
-        type: 'directory',
-        entries: ['dns-resilience-part1.md', 'dns-resilience-part2.md', 'veeam-backup-tagging.md']
-    },
-    '/projects/dns-resilience-part1.md': {
-        type: 'file',
-        url: 'https://community.veeam.com/automation-desk-103/making-dns-more-resilient-with-ansible-automated-etc-hosts-part-1-9635',
-        content: 'Making DNS More Resilient with Ansible: Automated /etc/hosts - Part 1\n\nAuthor: Sascha Richter\nPublished on: Veeam Community\n\nUse "open /projects/dns-resilience-part1.md" or "xdg-open /projects/dns-resilience-part1.md" to open in browser'
-    },
-    '/projects/dns-resilience-part2.md': {
-        type: 'file',
-        url: 'https://community.veeam.com/automation-desk-103/making-dns-more-resilient-with-ansible-automated-etc-hosts-part-2-9653',
-        content: 'Making DNS More Resilient with Ansible: Automated /etc/hosts - Part 2\n\nAuthor: Sascha Richter\nPublished on: Veeam Community\n\nUse "open /projects/dns-resilience-part2.md" or "xdg-open /projects/dns-resilience-part2.md" to open in browser'
-    },
-    '/projects/veeam-backup-tagging.md': {
-        type: 'file',
-        url: 'https://community.veeam.com/blogs-and-podcasts-57/automate-backup-tagging-with-veeam-one-a-smarter-way-to-organize-your-jobs-12048',
-        content: 'Automate Backup Tagging with Veeam ONE: A Smarter Way to Organize Your Jobs\n\nAuthor: Sascha Richter\nPublished on: Veeam Community\n\nUse "open /projects/veeam-backup-tagging.md" or "xdg-open /projects/veeam-backup-tagging.md" to open in browser'
     }
 };
+
+// ============================================================================
+// Build projects dynamically from projectsContent configuration
+// ============================================================================
+// Projects directory
+fileSystem['/projects'] = {
+    type: 'directory',
+    entries: projectsContent.map(p => p.filename)
+};
+
+// Individual project files
+projectsContent.forEach(project => {
+    const content = [
+        project.title,
+        '',
+        `Author: ${project.author}`,
+        `Published on: ${project.publishedOn}`
+    ];
+    
+    if (project.description) {
+        content.push('', project.description);
+    }
+    
+    content.push('', `Use "open /projects/${project.filename}" or "xdg-open /projects/${project.filename}" to open in browser`);
+    
+    fileSystem[`/projects/${project.filename}`] = {
+        type: 'file',
+        url: project.url,
+        content: content.join('\n')
+    };
+});
 
 // (rest of data.js continues unchanged)

@@ -4,16 +4,18 @@ This directory contains the customizable CV data for your terminal-based CV appl
 
 ## Quick Start
 
-1. **Edit `cv-content.js`** with your own information
-2. **Save the file**
-3. **Refresh your browser** - your changes will be reflected immediately!
+1. **Edit `cv-content.js`** with your CV information
+2. **Edit `projects-content.js`** with your projects and publications
+3. **Save the files**
+4. **Refresh your browser** - your changes will be reflected immediately!
 
 ## File Structure
 
 ```
 data/
-├── cv-content.js    # Your CV content (edit this!)
-└── README.md        # This file
+├── cv-content.js       # Your CV content (edit this!)
+├── projects-content.js # Your projects and publications (edit this!)
+└── README.md           # This file
 ```
 
 ## Customization Instructions
@@ -45,6 +47,53 @@ This file contains all your CV data organized in a simple JavaScript object stru
    - Email, GitHub, LinkedIn, personal website, etc.
    - Keep it professional and current
 
+### `projects-content.js`
+
+This file contains your projects, publications, blog posts, and other work you want to showcase. Each project is an object in an array with the following properties:
+
+#### Project Properties:
+
+1. **`filename`** (required) - The filename used in the terminal path
+   - Example: `'my-project.md'` will be accessible at `/projects/my-project.md`
+   - Use descriptive, lowercase filenames with hyphens
+
+2. **`title`** (required) - The full title of your project or article
+   - This is displayed when viewing the project
+
+3. **`author`** (required) - Your name or the author's name
+   - Typically your own name
+
+4. **`publishedOn`** (required) - Where the project was published
+   - Examples: "GitHub", "Veeam Community", "Personal Blog", "Medium"
+
+5. **`url`** (required) - External URL to the project or article
+   - Full URL including https://
+   - Opens when user runs `open` or `xdg-open` command
+
+6. **`description`** (optional) - Additional details about the project
+   - Leave empty (`''`) if not needed
+   - Provide context or key takeaways
+
+#### Example Project Entry:
+
+```javascript
+{
+    filename: 'kubernetes-automation.md',
+    title: 'Automating Kubernetes Deployments with GitOps',
+    author: 'Your Name',
+    publishedOn: 'Dev.to',
+    url: 'https://dev.to/yourname/kubernetes-automation',
+    description: 'A comprehensive guide to implementing GitOps workflows'
+}
+```
+
+#### Adding a New Project:
+
+1. Copy an existing project object
+2. Update all the properties with your project information
+3. Add a comma after the previous project entry
+4. Save the file - the project will automatically appear in `/projects/`
+
 ### Tips for Best Results
 
 - **Keep text concise**: Terminal displays work best with clear, concise content
@@ -72,12 +121,17 @@ Your Company, City
 
 ## How It Works
 
-The application loads your CV data from this file and uses it to:
+The application loads your CV data and projects from these configuration files:
+- **cv-content.js** provides the core CV data (about, experience, education, skills, contact)
+- **projects-content.js** provides your projects and publications
+
+The data is used to:
 - Populate the virtual file system (accessible via commands like `cat`, `ls`, `cd`)
 - Display information through various terminal commands
 - Generate derived content (like bio summaries and highlights)
+- Create browsable project entries at `/projects/`
 
-The production code in `src/js/data.js` uses the cvContent object from this file and handles all the logic for presenting your data in the terminal interface.
+The production code in `src/js/data.js` handles all the logic for presenting your data in the terminal interface.
 
 ## Need Help?
 
@@ -89,7 +143,7 @@ The production code in `src/js/data.js` uses the cvContent object from this file
 
 If you're forking this project:
 - Feel free to commit your customizations to your own repository
-- Consider adding `data/cv-content.js` to `.gitignore` if you want to keep your CV data private while sharing code improvements
+- Consider adding `data/cv-content.js` and `data/projects-content.js` to `.gitignore` if you want to keep your data private while sharing code improvements
 
 ## Questions?
 
